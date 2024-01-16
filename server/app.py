@@ -45,5 +45,50 @@ def most_expensive_baked_good():
     most_expensive_serialized = most_expensive.to_dict()
     return make_response( most_expensive_serialized,   200  )
 
+
+@app.route('/baked_goods', methods=['POST'])
+def create_baked_good():
+    data = request.get_json()
+
+    # Validate the incoming data and create a new BakedGood
+    new_baked_good = BakedGood(name=data['name'], price=data['price'])
+
+    try:
+        db.session.add(new_baked_good)
+        db.session.commit()
+        return jsonify(new_baked_good.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": "Failed to create baked good"}), 500
+
+@app.route('/bakeries/<int:id>', methods=['PATCH'])
+def update_bakery(id):
+    data = request.get_json()
+    bakery = Bakery.query.get(id)
+
+    if bakery:
+        bakery.name = data.get('name', bakery.name)
+
+        try:
+            db.session.commit()
+            return jsonify(bakery.to_dict())
+        except Exception as e:
+            return jsonify({"error": "Failed to update bakery"}), 500
+    else:
+        return jsonify({"error": "Bakery not found"}), 404
+
+@app.route('/baked_goods/<int:id>', methods=['DELETE'])
+def delete_baked_good(id):
+    baked_good = BakedGood.query.get(id)
+
+    if baked_good:
+        try:
+            db.session.delete(baked_good)
+            db.session.commit()
+            return jsonify({"message": "Baked good deleted successfully"})
+        except Exception as e:
+            return jsonify({"error": "Failed to delete baked good"}), 500
+    else:
+        return jsonify({"error": "Baked good not found"}), 404
+
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

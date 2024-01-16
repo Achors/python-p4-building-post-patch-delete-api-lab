@@ -49,8 +49,13 @@ def most_expensive_baked_good():
 @app.route('/baked_goods', methods=['POST'])
 def create_baked_good():
     data = request.get_json()
+    if 'name' not in data or 'price' not in data:
+        return jsonify({"error": "Name and price are required"}), 400
 
-    # Validate the incoming data and create a new BakedGood
+
+    if not isinstance(data['name'], str) or not isinstance(data['price'], (int, float)):
+        return jsonify({"error": "Invalid data format"}), 400
+
     new_baked_good = BakedGood(name=data['name'], price=data['price'])
 
     try:
